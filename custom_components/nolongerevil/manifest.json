@@ -1,0 +1,12 @@
+{
+  "domain": "nolongerevil",
+  "name": "NoLongerEvil Nest",
+  "version": "1.0.0",
+  "documentation": "https://github.com/codykociemba/NoLongerEvil-Thermostat",
+  "issue_tracker": "https://github.com/codykociemba/NoLongerEvil-Thermostat/issues",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": [],
+  "iot_class": "cloud_polling",
+  "config_flow": true
+}
