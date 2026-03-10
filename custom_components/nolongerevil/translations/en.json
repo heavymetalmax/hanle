@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "NoLongerEvil Nest Setup",
+        "description": "Enter your NoLongerEvil API key from https://nolongerevil.com/settings → API Keys",
+        "data": {
+          "api_key": "API Key (starts with nle_...)",
+          "base_url": "Server URL (leave default for hosted service)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key or insufficient permissions. Ensure the key has read+write scopes.",
+      "cannot_connect": "Cannot connect to the NoLongerEvil server. Check the URL and your internet connection.",
+      "unknown": "Unexpected error. Check the Home Assistant logs."
+    },
+    "abort": {
+      "already_configured": "This API key is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "NoLongerEvil Options",
+        "data": {
+          "scan_interval": "Poll interval (seconds, min 30)",
+          "base_url": "Server URL"
+        }
+      }
+    }
+  }
+}
