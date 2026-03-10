@@ -49,13 +49,13 @@ DEV_BATTERY = "battery_level"                       # 3.891 volts
 DEV_FAN_MODE = "fan_mode"                           # "auto"
 DEV_FAN_SPEED = "fan_current_speed"                 # "off" / "stage1"
 DEV_SCHEDULE_MODE = "current_schedule_mode"         # "HEAT"
-DEV_LOCKED = "temperature_lock"                     # false
+DEV_LOCKED = "temperature_lock_enabled"              # false (real API key)
 DEV_LOCK_LOW = "temperature_lock_low_temp"          # 20
 DEV_LOCK_HIGH = "temperature_lock_high_temp"        # 22.22223
 DEV_HOT_WATER = "hot_water_boiling_state"           # true (Heat Link actively boiling)
 DEV_AWAY_TEMP_LOW = "away_temperature_low"          # 9.4444
 DEV_AWAY_TEMP_HIGH = "away_temperature_high"        # 24.44444
-DEV_ECO = "eco"                                     # {"mode": "schedule"|"manual-eco"}
+DEV_ECO = "eco_mode_enabled"                        # false (boolean in real API)
 DEV_LEAF = "leaf"                                   # true = energy saving active
 DEV_BACKPLATE_TEMP = "backplate_temperature"        # 20.79999
 DEV_HEATER_DELIVERY = "heater_delivery"             # "in-floor-radiant"

@@ -135,6 +135,16 @@ class NLEApiClient:
             json={"away": away},
         )
 
+    # ── Eco mode ──────────────────────────────────────────────────────────────
+
+    async def set_eco(self, device_id: str, active: bool) -> dict:
+        """Enable or disable eco mode."""
+        return await self._request(
+            "POST",
+            f"/thermostat/{device_id}/eco",
+            json={"enabled": active},
+        )
+
     # ── Fan control ───────────────────────────────────────────────────────────
 
     async def set_fan(self, device_id: str, mode: str, duration: int | None = None) -> dict:

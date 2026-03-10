@@ -6,7 +6,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
-    STATUS_BATTERY,
     STATUS_ID,
     STATUS_LABEL,
     STATUS_ONLINE,
@@ -33,8 +32,19 @@ class NLEBaseEntity(CoordinatorEntity[NLECoordinator]):
         super().__init__(coordinator)
         self._device_id = device_id
         meta = _find_device_meta(coordinator, device_id)
-        label = meta.get(STATUS_LABEL) or meta.get("name") or device_id
         serial = meta.get(STATUS_SERIAL) or device_id
+
+        # Best name priority:
+        # 1. shared.name (user-set name on thermostat, e.g. "Ольга")
+        # 2. device metadata label/name
+        # 3. serial number
+        status = coordinator.data.get(device_id, {}) if coordinator.data else {}
+        label = (
+            status.get("device_name")
+            or meta.get(STATUS_LABEL)
+            or meta.get("name")
+            or serial
+        )
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, device_id)},
@@ -59,5 +69,4 @@ class NLEBaseEntity(CoordinatorEntity[NLECoordinator]):
         status = self._status
         if not status:
             return False
-        # NLE may report "online" field; fall back to True if absent
         return status.get(STATUS_ONLINE, True)

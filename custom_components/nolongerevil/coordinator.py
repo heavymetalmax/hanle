@@ -89,8 +89,8 @@ def parse_status(raw: dict) -> dict[str, Any]:
     # HVAC mode: target_temperature_type in shared is the most reliable source.
     # Values: "heat" | "cool" | "range" | "off"
     # Falls back to current_schedule_mode from device if absent.
-    _mode_map = {"heat": "heat", "cool": "cool", "range": "auto", "off": "off",
-                 "HEAT": "heat", "COOL": "cool", "RANGE": "auto", "OFF": "off"}
+    _mode_map = {"heat": "heat", "cool": "cool", "auto": "auto", "off": "off",
+                 "HEAT": "heat", "COOL": "cool", "AUTO": "auto", "OFF": "off"}
     sched_mode_raw: str = device_val.get(DEV_SCHEDULE_MODE, "HEAT")
     target_temp_type: str = shared_val.get(SHARED_TARGET_TEMP_TYPE, "").lower()
     if target_temp_type:
@@ -108,19 +108,18 @@ def parse_status(raw: dict) -> dict[str, Any]:
     heater_state: bool = bool(shared_val.get(SHARED_HVAC_HEATER_STATE, False))
     ac_state: bool = bool(shared_val.get(SHARED_HVAC_AC_STATE, False))
     boiling_raw = device_val.get(DEV_HOT_WATER)
-    boiling: bool = boiling_raw is not None and bool(boiling_raw)
 
     if hvac_mode == "off":
         hvac_action = "off"
-    elif heater_state or boiling:
+    elif heater_state:
         hvac_action = "heating"
     elif ac_state:
         hvac_action = "cooling"
     else:
         hvac_action = "idle" 
 
-    eco_obj = device_val.get(DEV_ECO, {})
-    eco_active: bool = eco_obj.get("mode", "schedule") == "manual-eco"
+    # eco_mode_enabled is a plain boolean in the real API response
+    eco_active: bool = bool(device_val.get(DEV_ECO, False))
 
     away: bool = bool(struct_val.get(STRUCT_AWAY, False))
 
@@ -146,7 +145,7 @@ def parse_status(raw: dict) -> dict[str, Any]:
         "can_heat":       can_heat,
         "can_cool":       can_cool,
         "has_range":      can_heat and can_cool,
-        "has_eco":        DEV_ECO in device_val,
+        "has_eco":        DEV_ECO in device_val,          # key present = eco supported
         "has_leaf":       DEV_LEAF in device_val,
         "has_lock":       DEV_LOCKED in device_val,
         "has_away_temps": DEV_AWAY_TEMP_LOW in device_val,
@@ -171,7 +170,6 @@ def parse_status(raw: dict) -> dict[str, Any]:
         "away_temperature_high": device_val.get(DEV_AWAY_TEMP_HIGH),
         "battery_level": battery_pct,
         "battery_voltage": battery_v,
-        "hot_water_boiling": boiling,
         "leaf": bool(device_val.get(DEV_LEAF, False)),
         "backplate_temperature": device_val.get(DEV_BACKPLATE_TEMP),
         "heat_link_model": device_val.get(DEV_HEAT_LINK_MODEL),
@@ -179,6 +177,7 @@ def parse_status(raw: dict) -> dict[str, Any]:
         "rssi": device_val.get(DEV_RSSI),
         "schedule": schedule_val,
         "capabilities": capabilities,
+        "device_name": shared_val.get("name") or device_meta.get("name") or "",
         "_device_meta": device_meta,
     }
 

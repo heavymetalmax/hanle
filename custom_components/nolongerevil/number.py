@@ -20,8 +20,10 @@ async def async_setup_entry(
     coordinator: NLECoordinator = hass.data[DOMAIN][entry.entry_id]
     entities = []
     for dev_id in coordinator.data:
-        entities.append(NLELockTempMin(coordinator, dev_id))
-        entities.append(NLELockTempMax(coordinator, dev_id))
+        # Only create lock temp entities for devices that support temperature lock
+        if coordinator.data[dev_id].get("capabilities", {}).get("has_lock"):
+            entities.append(NLELockTempMin(coordinator, dev_id))
+            entities.append(NLELockTempMax(coordinator, dev_id))
     async_add_entities(entities)
 
 
@@ -44,7 +46,8 @@ class _NLELockTempBase(NLEBaseEntity, NumberEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._status.get("temperature_lock", False)
+        # Only available when lock is actually enabled
+        return super().available and bool(self._status.get("temperature_lock", False))
 
 
 class NLELockTempMin(_NLELockTempBase):

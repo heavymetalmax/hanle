@@ -17,7 +17,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: NLECoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(NLEFanModeSelect(coordinator, dev_id) for dev_id in coordinator.data)
+    # Only create Fan Mode select for devices that actually have a fan
+    entities = [
+        NLEFanModeSelect(coordinator, dev_id)
+        for dev_id in coordinator.data
+        if coordinator.data[dev_id].get("capabilities", {}).get("has_fan")
+    ]
+    async_add_entities(entities)
 
 
 class NLEFanModeSelect(NLEBaseEntity, SelectEntity):

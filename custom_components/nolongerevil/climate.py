@@ -155,7 +155,7 @@ class NLEClimate(NLEBaseEntity, ClimateEntity):
 
     @property
     def preset_mode(self) -> str:
-        if self._caps.get("has_eco") and self._status.get("eco_active"):
+        if self._status.get("eco_active"):
             return PRESET_ECO
         if self._status.get("away"):
             return PRESET_AWAY
@@ -199,10 +199,14 @@ class NLEClimate(NLEBaseEntity, ClimateEntity):
         await self.coordinator.async_command_refresh()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
-        if preset_mode == PRESET_AWAY:
+        if preset_mode == PRESET_ECO:
+            await self.coordinator.client.set_eco(self._device_id, active=True)
+        elif preset_mode == PRESET_AWAY:
+            if self._status.get("eco_active"):
+                await self.coordinator.client.set_eco(self._device_id, active=False)
             await self.coordinator.client.set_away(self._device_id, away=True)
-        elif preset_mode == PRESET_ECO and self._caps.get("has_eco"):
-            await self.coordinator.client.set_mode(self._device_id, "eco")
         else:  # PRESET_HOME
+            if self._status.get("eco_active"):
+                await self.coordinator.client.set_eco(self._device_id, active=False)
             await self.coordinator.client.set_away(self._device_id, away=False)
         await self.coordinator.async_command_refresh()

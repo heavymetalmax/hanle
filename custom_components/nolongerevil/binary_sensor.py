@@ -1,7 +1,7 @@
 """Binary sensor platform for NoLongerEvil Nest."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -21,23 +21,19 @@ from .entity import NLEBaseEntity
 class NLEBinarySensorDescription(BinarySensorEntityDescription):
     status_key: str
     true_values: tuple = (True, 1)
+    # If set, entity is only created when this capability is True
+    required_cap: str | None = None
 
 
 BINARY_SENSOR_DESCRIPTIONS: tuple[NLEBinarySensorDescription, ...] = (
-    NLEBinarySensorDescription(
-        key="hot_water_boiling",
-        name="Boiler Active",
-        device_class=BinarySensorDeviceClass.HEAT,
-        status_key="hot_water_boiling",
-        true_values=(True, 1),
-    ),
+
     NLEBinarySensorDescription(
         key="away",
         name="Away",
-        # away=True → NOT present; invert: is_on = away
         device_class=BinarySensorDeviceClass.PRESENCE,
         status_key="away",
         true_values=(False, 0),  # present when NOT away
+        required_cap=None,
     ),
     NLEBinarySensorDescription(
         key="fan_running",
@@ -45,6 +41,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NLEBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.RUNNING,
         status_key="fan_running",
         true_values=(True, 1),
+        required_cap="has_fan",
     ),
     NLEBinarySensorDescription(
         key="temperature_lock",
@@ -52,6 +49,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NLEBinarySensorDescription, ...] = (
         device_class=None,
         status_key="temperature_lock",
         true_values=(True, 1),
+        required_cap="has_lock",
     ),
     NLEBinarySensorDescription(
         key="eco_active",
@@ -59,6 +57,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NLEBinarySensorDescription, ...] = (
         device_class=None,
         status_key="eco_active",
         true_values=(True, 1),
+        required_cap="has_eco",
     ),
     NLEBinarySensorDescription(
         key="leaf",
@@ -66,6 +65,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NLEBinarySensorDescription, ...] = (
         device_class=None,
         status_key="leaf",
         true_values=(True, 1),
+        required_cap="has_leaf",
     ),
 )
 
@@ -76,11 +76,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: NLECoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities = [
-        NLEBinarySensor(coordinator, dev_id, desc)
-        for dev_id in coordinator.data
-        for desc in BINARY_SENSOR_DESCRIPTIONS
-    ]
+    entities = []
+    for dev_id in coordinator.data:
+        caps = coordinator.data[dev_id].get("capabilities", {})
+        for desc in BINARY_SENSOR_DESCRIPTIONS:
+            # Skip if this sensor requires a capability the device doesn't have
+            if desc.required_cap and not caps.get(desc.required_cap):
+                continue
+            entities.append(NLEBinarySensor(coordinator, dev_id, desc))
     async_add_entities(entities)
 
 
